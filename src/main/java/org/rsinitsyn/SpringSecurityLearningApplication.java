@@ -3,10 +3,15 @@ package org.rsinitsyn;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @EnableWebSecurity(debug = true)
@@ -20,23 +25,33 @@ public class SpringSecurityLearningApplication {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(Customizer.withDefaults())
                 .authorizeRequests(config ->
                         config.requestMatchers("/public/**").permitAll()
                                 .anyRequest().authenticated())
-                .exceptionHandling(config -> config.authenticationEntryPoint(redirect403AuthEntryPoint()))
                 .build();
     }
 
-    private AuthenticationEntryPoint redirect403AuthEntryPoint() {
-        return (request, response, authException) -> {
-            response.sendRedirect("http://localhost:8888/public/403.html");
-        };
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new InMemoryUserDetailsManager(
+                User.builder()
+                        .username("user")
+                        .password(passwordEncoder().encode("user"))
+                        .roles("USER")
+                        .build(),
+
+                User.builder()
+                        .username("admin")
+                        .password(passwordEncoder().encode("admin"))
+                        .roles("ADMIN")
+                        .build()
+        );
     }
 
-    private AuthenticationEntryPoint unauthorizedAuthEntryPoint() {
-        return (request, response, authException) -> {
-            authException.printStackTrace();
-            response.sendError(HttpStatus.UNAUTHORIZED.value());
-        };
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
