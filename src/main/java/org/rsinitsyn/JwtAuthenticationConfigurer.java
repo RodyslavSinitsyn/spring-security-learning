@@ -57,11 +57,14 @@ public class JwtAuthenticationConfigurer extends AbstractHttpConfigurer<JwtAuthe
         jwtAuthFilter.setSuccessHandler((request, response, authentication) -> CsrfFilter.skipRequest(request));
         jwtAuthFilter.setFailureHandler((request, response, exception) -> response.sendError(HttpServletResponse.SC_FORBIDDEN));
 
+        var refreshTokenFilter = new RefreshTokenFilter(new AccessTokenJwsStringSerializer(new MACSigner(OctetSequenceKey.parse(jwtAccessTokenKey))));
+
         var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
         authenticationProvider.setPreAuthenticatedUserDetailsService(new TokenAuthenticationUserDetailsService());
 
         builder.addFilterAfter(requestJwtTokensFilter, ExceptionTranslationFilter.class)
                 .addFilterBefore(jwtAuthFilter, CsrfFilter.class)
+                .addFilterBefore(refreshTokenFilter, ExceptionTranslationFilter.class)
                 .authenticationProvider(authenticationProvider);
     }
 }

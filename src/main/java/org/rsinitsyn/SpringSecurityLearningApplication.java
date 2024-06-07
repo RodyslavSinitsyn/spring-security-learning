@@ -21,7 +21,6 @@ public class SpringSecurityLearningApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SpringSecurityLearningApplication.class, args);
-        // TODO 1:02:04 (refresh token filter) + DEBUG ALL
     }
 
 

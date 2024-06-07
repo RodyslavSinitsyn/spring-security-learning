@@ -22,7 +22,8 @@ public class TokenAuthenticationUserDetailsService
                     true,
                     token.authorities().stream()
                             .map(SimpleGrantedAuthority::new)
-                            .toList());
+                            .toList())
+                    .setToken(token);
         }
 
         throw new UsernameNotFoundException("Principal must be of type Token");
