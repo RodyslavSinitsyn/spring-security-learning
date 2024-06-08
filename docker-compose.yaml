@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - 8080:8080
+    entrypoint: [ "/opt/keycloak/bin/kc.sh" ]
+    command: [ "start-dev" ]
+    networks:
+      - spring-security-learning
+    depends_on:
+      - keycloak-db
+
+  keycloak-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    networks:
+      - spring-security-learning
+    volumes:
+      - spring-security-learning-postgres-data:/var/lib/postgresql/data
+
+networks:
+  spring-security-learning:
+    driver: bridge
+
+volumes:
+  spring-security-learning-postgres-data:
